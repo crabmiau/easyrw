@@ -1,7 +1,7 @@
 
 # EasyRW
 
-Easy reading and writing memory on rust.\
+Easy reading and writing memory on rust.
 
 
 
