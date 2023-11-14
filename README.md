@@ -6,6 +6,20 @@ Easy reading and writing memory on rust.
 
 
 
+## Installation
+
+Run the following command in your project directory:
+```bash
+cargo add easyrw
+```
+
+**OR**
+
+Or add the following line to your Cargo.toml:
+```
+easyrw = "0.2.0"
+```
+    
 ## Assault Cube R/W Example:
 
 ```rust
