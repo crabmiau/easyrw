@@ -17,7 +17,7 @@ cargo add easyrw
 
 Or add the following line to your Cargo.toml:
 ```
-easyrw = "0.2.0"
+easyrw = "0.2.1"
 ```
     
 ## Assault Cube R/W Example:
