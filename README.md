@@ -1,9 +1,7 @@
 
 # EasyRW
 
-Easy reading and writing memory on rust.
-
-**IM RATE LIMITED ON CRATES, USE THIS VERSION INSTEAD OF THE CRATES ONE FOR NOW**
+Easy reading and writing memory on rust.\
 
 
 
