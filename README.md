@@ -15,9 +15,9 @@ cargo add easyrw
 
 **OR**
 
-Or add the following line to your Cargo.toml:
+add the following line to your Cargo.toml:
 ```
-easyrw = "0.2.1"
+easyrw = "0.2.2"
 ```
     
 ## Assault Cube R/W Example:
@@ -46,3 +46,32 @@ fn main()  {
 }
 ```
 
+## a BAD Read Range Example:
+```rust
+use easyrw::memory::init;
+
+fn main()  {
+    let proc = init("ac_client.exe", false).expect("Failed to attach to process"); //attach to process with false argument, means it will write memory externally, not internally, if ur making a dll then put it to true r/w internally
+    let base = proc.getbase("ac_client.exe"); // get module base
+    if let Some(data) = proc.read_range::<i32>(
+        proc.get_ptr(base + 0x17E0A8, &[0x108]),
+        proc.get_ptr(base + 0x17E0A8, &[0x140]),
+    ) {
+        println!("data: {:?}", data);
+    } else {
+        println!("failed to read memory range");
+    }
+}
+```
+
+
+## a BAD Write Range Example:
+```rust
+use easyrw::memory::init;
+
+fn main()  {
+    let proc = init("ac_client.exe", false).expect("Failed to attach to process"); //attach to process with false argument, means it will write memory externally, not internally, if ur making a dll then put it to true r/w internally
+    let base = proc.getbase("ac_client.exe"); // get module base
+    proc.write_range(proc.get_ptr(base + 0x17E0A8, &[0x108]), &[999, 999, 999, 999, 999, 999, 999, 999, 999, 999, 999, 999, 999, 999, 999, 999, 999, 999, 999, 999, 999, 999, 999, 999, 999, 999, 999, 999, 999, 999, 999, 999, 999, 999, 999, 999, 999, 999, 999, 999, 999, 999, 999, 999, 999, 999, 999, 999, 999, 999, 999, 999, 999, 999, 999, 999, 999, 999]); // this is cursed but it will write from base + 0x17E0A8, &[0x108] to base + 0x17E0A8, &[0x140]
+}
+```

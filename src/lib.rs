@@ -158,6 +158,86 @@ pub mod memory {
             }
         }
 
+pub fn read_range<T>(&self, start_address: usize, end_address: usize) -> Option<Vec<T>> {
+    let adjusted_start = start_address + 4;  // Adjust for the discrepancy
+    let adjusted_end = end_address + 4;      // Adjust for the discrepancy
+
+    let size = (adjusted_end - adjusted_start + 1) / std::mem::size_of::<T>();
+    let mut buffer: Vec<T> = Vec::with_capacity(size);
+
+    // Safety: Create an uninitialized buffer
+    unsafe {
+        buffer.set_len(size);
+    }
+
+    if self.use_internal {
+        unsafe {
+            ptr::copy_nonoverlapping(
+                adjusted_start as *const T,
+                buffer.as_mut_ptr(),
+                size,
+            );
+        }
+        Some(buffer)
+    } else {
+        let success = unsafe {
+            ReadProcessMemory(
+                self.process_handle,
+                adjusted_start as *const _,
+                buffer.as_mut_ptr() as *mut _,
+                size * std::mem::size_of::<T>(),
+                ptr::null_mut(),
+            )
+        };
+
+        if success == 0 {
+            let last_error = std::io::Error::last_os_error();
+            eprintln!("Error reading process memory range: {}", last_error);
+            None
+        } else {
+            Some(buffer)
+        }
+    }
+}
+
+
+
+
+
+    pub fn write_range(&self, start_address: usize, data: &[u32]) -> bool {
+        let size = data.len();
+
+        if self.use_internal {
+            unsafe {
+                ptr::copy_nonoverlapping(
+                    data.as_ptr(),
+                    start_address as *mut u32,
+                    size,
+                );
+            }
+            true
+        } else {
+            let success = unsafe {
+                WriteProcessMemory(
+                    self.process_handle,
+                    start_address as *mut _,
+                    data.as_ptr() as *const _,
+                    size,
+                    ptr::null_mut(),
+                )
+            };
+
+            if success == 0 {
+                let last_error = std::io::Error::last_os_error();
+                eprintln!("Error writing memory range: {}", last_error);
+                false
+            } else {
+                true
+            }
+        }
+    }
+
+
         pub fn get_assault_cube(&self, base_address: usize) -> AssaultCube {
             AssaultCube {
                 hp: self.get_ptr(base_address + 0x17E0A8, &[0xEC]),
