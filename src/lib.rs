@@ -82,31 +82,38 @@ pub mod memory {
             }
         }
 
-        pub fn get_ptr(&self, base: usize, offsets: &[usize]) -> usize {
+        pub fn get_ptr(&self, base: usize, offsets: &[usize]) -> Result<usize, &'static str> {
+            if offsets.is_empty() {
+                return Err("Offsets array cannot be empty");
+            }
+        
             if self.use_internal {
                 let mut addr: usize = base;
-
-                for &i in offsets {
-                    if offsets.contains(&i) {
-                        if i != *offsets.last().unwrap() {
-                            addr = unsafe { *(addr as *const usize) };
-                        }
+        
+                for &offset in offsets.iter().take(offsets.len() - 1) {
+                    if addr == 0 || addr % std::mem::align_of::<usize>() != 0 {
+                        return Err("Invalid memory address");
                     }
+                    addr = unsafe { 
+                        *(addr as *const usize).add(offset / std::mem::size_of::<usize>())
+                    };
                 }
-
-                addr + *offsets.last().unwrap()
+                Ok(addr + offsets[offsets.len() - 1])
             } else {
-                let mut addr: usize = self.read(base);
-
-                for &i in offsets {
-                    if offsets.contains(&i) {
-                        if i != *offsets.last().unwrap() {
-                            addr = self.read(addr + i);
-                        }
-                    }
+                let mut addr: usize = match self.read(base) {
+                    Ok(a) => a,
+                    Err(_) => return Err("Failed to read base address"),
+                };
+        
+                for &offset in offsets.iter().take(offsets.len() - 1) {
+                    // Read and add offset
+                    addr = match self.read(addr + offset) {
+                        Ok(a) => a,
+                        Err(_) => return Err("Failed to read offset address"),
+                    };
                 }
-
-                addr + *offsets.last().unwrap()
+        
+                Ok(addr + offsets[offsets.len() - 1])
             }
         }
 
